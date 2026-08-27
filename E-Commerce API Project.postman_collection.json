@@ -1,0 +1,909 @@
+{
+  "info": {
+    "_postman_id": "56e35803-19c4-4f31-85eb-ad854a9017bc",
+    "name": "E-Commerce API Project",
+    "description": "## E-Commerce API Project\n\nThis collection covers the core backend functionality of an e-commerce platform, built against the [DummyJSON API](https://dummyjson.com) — a free fake REST API for testing and prototyping. It is organized into four functional areas:\n\n### Authentication\nHandles user login and identity verification. Includes requests for logging in with valid and invalid credentials, retrieving the current authenticated user, and testing token-based access — including missing and invalid token scenarios.\n\n### Products\nCovers the full product lifecycle. Includes endpoints to list all products, retrieve a single product, search and filter by category, add new products, update existing ones, delete products, and handle invalid product lookups.\n\n### Users\nProvides user management capabilities. Includes endpoints to list all users, retrieve a specific user, search for users, and test invalid user scenarios.\n\n### Carts\nManages shopping cart operations. Includes endpoints to retrieve all carts, fetch a specific cart (with total validation), look up carts by user, add items to a cart, update a cart, and handle invalid product references.\n\n---\n\n**Base URL** is configured via the `base_Url_project_1` collection variable, and authentication relies on the `AccessToken` environment variable from the active environment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "57320827",
+    "_collection_link": "https://go.postman.co/collection/57320827-56e35803-19c4-4f31-85eb-ad854a9017bc?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login Valid",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Access token exists\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.accessToken).to.exist;\r\n});\r\n\r\npm.test(\"Status code is 200\", function () {\r\n        pm.response.to.have.status(200);\r\n        });\r\n\r\n\r\nconst data = pm.response.json();\r\n\r\npm.environment.set(\"AccessToken\", data.accessToken);\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"emilys\",\r\n    \"password\": \"emilyspass\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url_project_1}}/auth/login",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "## Login Valid\n\nAuthenticates a user with valid credentials and retrieves an access token.\n\n---\n\n### Method & URL\n\n**POST** `{{base_Url_project_1}}/auth/login`\n\n---\n\n### Parameters\n\nNone.\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nA JSON object containing the user's login credentials.\n\n``` json\n{\n  \"username\": \"emilys\",\n  \"password\": \"emilyspass\"\n}\n```\n\n---\n\n### Response\n\nA successful request returns a **200 OK** status with a JSON object containing the user's `accessToken` and other session details.\n\n**Example response structure:**\n\n``` json\n{\n  \"accessToken\": \"eyJhbGci...\",\n  \"username\": \"emilys\",\n  ...\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 200** — Verifies that the response status is `200 OK`.\n\n- **Access token exists** — Confirms that the response body contains an `accessToken` field.\n\n> The `accessToken` is automatically saved to the `AccessToken` environment variable for use in subsequent authenticated requests."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Authenticated user is returned\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.username).to.eql(\"emilys\");\r\n});\r\n\r\npm.test(\"Status code is 200\", function () {\r\n        pm.response.to.have.status(200);\r\n        });\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{AccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url_project_1}}/auth/me",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": "## Get Current User\n\nRetrieves the profile of the currently authenticated user using a valid Bearer token.\n\n---\n\n### Method & URL\n\n**GET** `{{base_Url_project_1}}/auth/me`\n\n---\n\n### Parameters\n\nNone.\n\n---\n\n### Authentication\n\nRequires a **Bearer Token**. The `{{AccessToken}}` environment variable is used, which is set automatically after a successful login.\n\n---\n\n### Request Body\n\nNone.\n\n---\n\n### Response\n\nA successful request returns a **200 OK** status with a JSON object containing the authenticated user's profile details.\n\n**Example response structure:**\n\n``` json\n{\n  \"id\": 1,\n  \"username\": \"emilys\",\n  \"email\": \"...\",\n  ...\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 200** — Verifies that the response status is `200 OK`.\n\n- **Authenticated user is returned** — Confirms that the returned user's `username` equals `emilys`."
+          },
+          "response": []
+        },
+        {
+          "name": "Get current user - Invalid Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () {\r\n        pm.response.to.have.status(401);\r\n        });\r\n\r\n\r\npm.test(\"Error message is correct\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.message).to.eql(\"Invalid/Expired Token!\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authorization_secret}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url_project_1}}/auth/me",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": "## Get Current User - Invalid Token\n\nAttempts to retrieve the current user's profile using an invalid or expired Bearer token, verifying that the API returns the correct error response.\n\n---\n\n### Method & URL\n\n**GET** `{{base_Url_project_1}}/auth/me`\n\n---\n\n### Parameters\n\nNone.\n\n---\n\n### Authentication\n\nUses a **Bearer Token** with an invalid value (`{{authorization_secret}}`), intentionally triggering an authentication failure.\n\n---\n\n### Request Body\n\nNone.\n\n---\n\n### Response\n\nA request with an invalid token returns a **401 Unauthorized** status with a JSON object containing an error message.\n\n**Example response structure:**\n\n``` json\n{\n  \"message\": \"Invalid/Expired Token!\"\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 401** — Verifies that the response status is `401 Unauthorized`.\n\n- **Error message is correct** — Confirms that the response body's `message` field equals `\"Invalid/Expired Token!\"`."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User - No Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () {\r\n    pm.response.to.have.status(401);\r\n});\r\n\r\n\r\npm.test(\"Error message exist\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.message).to.exist\r\n\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url_project_1}}/auth/me",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": "## Get Current User - No Token\n\nAttempts to retrieve the current user's profile without providing any Bearer token, verifying that the API correctly rejects unauthenticated requests.\n\n---\n\n### Method & URL\n\n**GET** `{{base_Url_project_1}}/auth/me`\n\n---\n\n### Parameters\n\nNone.\n\n---\n\n### Authentication\n\nNo token is provided. This request intentionally omits authentication to test the API's handling of unauthenticated access.\n\n---\n\n### Request Body\n\nNone.\n\n---\n\n### Response\n\nA request with no token returns a **401 Unauthorized** status with a JSON object containing an error message.\n\n**Example response structure:**\n\n``` json\n{\n  \"message\": \"...\"\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 401** — Verifies that the response status is `401 Unauthorized`.\n\n- **Error message exists** — Confirms that the response body contains a `message` field."
+          },
+          "response": []
+        },
+        {
+          "name": "Login Invalid Credentials",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {\r\n    pm.response.to.have.status(400);\r\n});\r\n\r\npm.test(\"Error message exists\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.message).to.exist;\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"wronguser\",\r\n    \"password\": \"wrongpassword\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url_project_1}}/auth/login",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "## Login Invalid Credentials\n\nAttempts to authenticate with incorrect credentials, verifying that the API returns the correct error response for failed login attempts.\n\n---\n\n### Method & URL\n\n**POST** `{{base_Url_project_1}}/auth/login`\n\n---\n\n### Parameters\n\nNone.\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nA JSON object containing intentionally incorrect login credentials.\n\n``` json\n{\n  \"username\": \"wronguser\",\n  \"password\": \"wrongpassword\"\n}\n```\n\n---\n\n### Response\n\nA request with invalid credentials returns a **400 Bad Request** status with a JSON object containing an error message.\n\n**Example response structure:**\n\n``` json\n{\n  \"message\": \"Invalid credentials\"\n}\n```\n\n---\n\n### Automated Tests\n\nNo automated tests are currently configured for this request."
+          },
+          "response": []
+        }
+      ],
+      "description": "This folder contains all requests related to authentication in the E-Commerce API. It covers user login with both valid and invalid credentials, as well as retrieving the authenticated user's profile under various token conditions.\n\nRequests included:\n\n- **Login Valid**: Submits valid user credentials to the login endpoint and returns an access token upon success.\n    \n- **Get Current User**: Retrieves the authenticated user's profile using a valid token.\n    \n- **Login Invalid Credentials**: Tests the login endpoint with incorrect credentials to verify proper error handling.\n    \n- **Get Current User - No Token**: Edge case that calls the profile endpoint without providing an authentication token.\n    \n- **Get Current User - Invalid Token**: Edge case that calls the profile endpoint with a malformed or expired token.\n    \n\nUse this folder to validate both the core authentication workflows and edge case scenarios such as missing tokens, invalid tokens, and incorrect login credentials.",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response is JSON\",function(){\r\n    pm.response.to.be.json;\r\n});\r\n\r\n"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "All Products",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n        pm.response.to.have.status(200);\r\n    });\r\n//check that products exist\r\npm.test(\"Products are returned\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.products).to.be.an(\"array\");\r\n    pm.expect(data.products.length).to.be.greaterThan(0);\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url_project_1}}/products",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "products"
+              ]
+            },
+            "description": "## All Products\n\nRetrieves a complete list of all available products in the system.\n\n---\n\n### Method & URL\n\n**GET** `{{base_Url_project_1}}/products`\n\n---\n\n### Parameters\n\nThis endpoint does not require any path or query parameters.\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nNone.\n\n---\n\n### Response\n\nA successful request returns a **200 OK** status with a JSON object containing a `products` array. Each element in the array represents a product available in the system.\n\n**Example response structure:**\n\n``` json\n{\n  \"products\": [\n    { ... },\n    { ... }\n  ]\n}\n\n ```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 200** — Verifies that the response status is `200 OK`.\n    \n- **Products are returned** — Confirms that `data.products` exists, is an array, and contains at least one item."
+          },
+          "response": []
+        },
+        {
+          "name": "Get a Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n        pm.response.to.have.status(200);\r\n    });\r\n\r\n//check if the product id is 1\r\npm.test(\"Product ID is 1\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.id).to.eql(3);\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url_project_1}}/products/3",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "products",
+                "3"
+              ]
+            },
+            "description": "## Get a Product\n\nRetrieves the details of a single product by its ID.\n\n---\n\n### Method & URL\n\n**GET** `{{base_Url_project_1}}/products/3`\n\n---\n\n### Parameters\n\n| Parameter | Type | Location | Description |\n|-----------|------|----------|-------------|\n| `3` | integer | Path | The ID of the product to retrieve. |\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nNone.\n\n---\n\n### Response\n\nA successful request returns a **200 OK** status with a JSON object containing the details of the requested product.\n\n**Example response structure:**\n\n``` json\n{\n  \"id\": 3,\n  \"title\": \"...\",\n  \"price\": ...,\n  ...\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 200** — Verifies that the response status is `200 OK`.\n\n- **Product ID is 3** — Confirms that the returned product's `id` equals `3`."
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\r\n\r\n// check if the response status code is 404\r\npm.test(\"Status code is 404\", function () {\r\n    pm.response.to.have.status(404);\r\n});\r\n// test if there is an error message in the response body\r\npm.test(\"Error message exists\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.message).to.exist;\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url_project_1}}/products/195",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "products",
+                "195"
+              ]
+            },
+            "description": "## Invalid Product\n\nAttempts to retrieve a product using a non-existent ID, verifying that the API returns the correct error response.\n\n---\n\n### Method & URL\n\n**GET** `{{base_Url_project_1}}/products/195`\n\n---\n\n### Parameters\n\n| Parameter | Type | Location | Description |\n|-----------|------|----------|-------------|\n| `195` | integer | Path | A product ID that does not exist in the system. |\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nNone.\n\n---\n\n### Response\n\nA request with an invalid product ID returns a **404 Not Found** status with a JSON object containing an error message.\n\n**Example response structure:**\n\n``` json\n{\n  \"message\": \"Product with id '195' not found\"\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 404** — Verifies that the response status is `404 Not Found`.\n\n- **Error message exists** — Confirms that the response body contains a `message` field."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "    });\r",
+                  "\t\t\r",
+                  "pm.test(\"Products are returned\", function () {\r",
+                  "    const data = pm.response.json();\r",
+                  "\r",
+                  "    pm.expect(data.products).to.be.an(\"array\");\r",
+                  "    pm.expect(data.products.length).to.be.greaterThan(0);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Search results contain 'shoes'\", function () {\r",
+                  "    const data = pm.response.json();\r",
+                  "\r",
+                  "    data.products.forEach(function (product) {\r",
+                  "        const productText = JSON.stringify(product).toLowerCase();\r",
+                  "\r",
+                  "        pm.expect(productText).to.include(\"shoes\");\r",
+                  "    });\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url_project_1}}/products/search?q=shoes",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "products",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "shoes"
+                }
+              ]
+            },
+            "description": "## Search Product\n\nSearches for products matching a given keyword query.\n\n---\n\n### Method & URL\n\n**GET** `{{base_Url_project_1}}/products/search?q=shoes`\n\n---\n\n### Parameters\n\n| Parameter | Type | Location | Description |\n|-----------|------|----------|-------------|\n| `q` | string | Query | The search keyword to filter products by. |\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nNone.\n\n---\n\n### Response\n\nA successful request returns a **200 OK** status with a JSON object containing a `products` array of items matching the search keyword.\n\n**Example response structure:**\n\n``` json\n{\n  \"products\": [\n    { \"id\": 1, \"title\": \"...\", \"category\": \"...\", ... },\n    ...\n  ]\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 200** — Verifies that the response status is `200 OK`.\n\n- **Products are returned** — Confirms that `data.products` is an array with at least one item.\n\n- **Search results contain 'shoes'** — Verifies that every returned product contains the keyword `shoes` somewhere in its data."
+          },
+          "response": []
+        },
+        {
+          "name": "Products by Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Products are returned\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.products).to.be.an(\"array\");\r\n    pm.expect(data.products.length).to.be.greaterThan(0);\r\n});\r\n\r\npm.test(\"Search results contain 'smartphones'category \", function () {\r\n    const data = pm.response.json();\r\n\r\n    data.products.forEach(function (product) {\r\n        const productText = JSON.stringify(product).toLowerCase();\r\n\r\n        pm.expect(productText).to.include(\"smartphones\");\r\n    });\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url_project_1}}/products/category/smartphones",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "products",
+                "category",
+                "smartphones"
+              ]
+            },
+            "description": "## Products by Category\n\nRetrieves all products belonging to a specific category.\n\n---\n\n### Method & URL\n\n**GET** `{{base_Url_project_1}}/products/category/smartphones`\n\n---\n\n### Parameters\n\n| Parameter | Type | Location | Description |\n|-----------|------|----------|-------------|\n| `smartphones` | string | Path | The category name to filter products by. |\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nNone.\n\n---\n\n### Response\n\nA successful request returns a **200 OK** status with a JSON object containing a `products` array of items in the specified category.\n\n**Example response structure:**\n\n``` json\n{\n  \"products\": [\n    { \"id\": 1, \"title\": \"...\", \"category\": \"smartphones\", ... },\n    ...\n  ]\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Products are returned** — Confirms that `data.products` is an array with at least one item.\n\n- **Search results contain 'smartphones' category** — Verifies that every returned product belongs to the `smartphones` category."
+          },
+          "response": []
+        },
+        {
+          "name": "Add a Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {\r\n        pm.response.to.have.status(201);\r\n    });\r\npm.test(\"Product data is correct\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.title).to.eql(\"QA Testing Laptop\");\r\n    pm.expect(data.price).to.eql(9.99);\r\n    pm.expect(data.category).to.eql(\"Laptops\");\r\n});\r\n\r\n\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n\t\"title\": \"QA Testing Laptop\",\r\n\t\"price\": 9.99,\r\n\t\"category\": \"Laptops\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url_project_1}}/products/add",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "products",
+                "add"
+              ]
+            },
+            "description": "## Add a Product\n\nSimulates adding a new product to the system. Note: this is a simulation only — no product is actually persisted on the server.\n\n---\n\n### Method & URL\n\n**POST** `{{base_Url_project_1}}/products/add`\n\n---\n\n### Parameters\n\nNone.\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nA JSON object containing the details of the product to add.\n\n``` json\n{\n  \"title\": \"QA Testing Laptop\",\n  \"price\": 9.99,\n  \"category\": \"Laptops\"\n}\n```\n\n---\n\n### Response\n\nA successful request returns a **201 Created** status with a JSON object representing the newly created product, including the assigned `id`.\n\n**Example response structure:**\n\n``` json\n{\n  \"id\": 195,\n  \"title\": \"QA Testing Laptop\",\n  \"price\": 9.99,\n  \"category\": \"Laptops\"\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 201** — Verifies that the response status is `201 Created`.\n\n- **Product data is correct** — Confirms that the returned product's `title`, `price`, and `category` match the values sent in the request body."
+          },
+          "response": []
+        },
+        {
+          "name": "Update a Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n        pm.response.to.have.status(200);\r\n    });\r\n\r\n\r\npm.test(\"Product was updated correctly\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.title).to.eql(\"QA Testing Laptop Updated\");\r\n    pm.expect(data.price).to.eql(1200);\r\n    pm.expect(data.category).to.eql(\"Laptops\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"title\": \"QA Testing Laptop Updated\",\r\n    \"price\": 1200,\r\n    \"category\": \"Laptops\"\r\n    \r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url_project_1}}/products/1",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "products",
+                "1"
+              ]
+            },
+            "description": "## Update a Product\n\nUpdates the details of an existing product by its ID using a full replacement (PUT).\n\n---\n\n### Method & URL\n\n**PUT** `{{base_Url_project_1}}/products/1`\n\n---\n\n### Parameters\n\n| Parameter | Type | Location | Description |\n|-----------|------|----------|-------------|\n| `1` | integer | Path | The ID of the product to update. |\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nA JSON object containing the updated product fields.\n\n``` json\n{\n  \"title\": \"QA Testing Laptop Updated\",\n  \"price\": 1200,\n  \"category\": \"Laptops\"\n}\n```\n\n---\n\n### Response\n\nA successful request returns a **200 OK** status with a JSON object representing the updated product.\n\n**Example response structure:**\n\n``` json\n{\n  \"id\": 1,\n  \"title\": \"QA Testing Laptop Updated\",\n  \"price\": 1200,\n  \"category\": \"Laptops\"\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 200** — Verifies that the response status is `200 OK`.\n\n- **Product was updated correctly** — Confirms that the returned product's `title`, `price`, and `category` match the updated values sent in the request body."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Response is JSON\", function () {\r\n    pm.response.to.be.json;\r\n});\r\n\r\npm.test(\"Deleted product ID is 1\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.id).to.eql(1);\r\n});\r\n\r\npm.test(\"Product is marked as deleted\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.isDeleted).to.eql(true);\r\n});\r\n\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url_project_1}}/products/1",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "products",
+                "1"
+              ]
+            },
+            "description": "## Delete Product\n\nDeletes an existing product by its ID.\n\n---\n\n### Method & URL\n\n**DELETE** `{{base_Url_project_1}}/products/1`\n\n---\n\n### Parameters\n\n| Parameter | Type | Location | Description |\n|-----------|------|----------|-------------|\n| `1` | integer | Path | The ID of the product to delete. |\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nNone.\n\n---\n\n### Response\n\nA successful request returns a **200 OK** status with a JSON object representing the deleted product, including an `isDeleted` flag and a `deletedOn` timestamp.\n\n**Example response structure:**\n\n``` json\n{\n  \"id\": 1,\n  \"title\": \"...\",\n  \"isDeleted\": true,\n  \"deletedOn\": \"...\"\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Response is JSON** — Verifies that the response body is valid JSON.\n\n- **Deleted product ID is 1** — Confirms that the returned product's `id` equals `1`.\n\n- **Product is marked as deleted** — Confirms that `isDeleted` is `true` in the response."
+          },
+          "response": []
+        }
+      ],
+      "description": "This folder contains all requests related to product management in the E-Commerce API. It covers the full range of CRUD operations — creating, reading, updating, and deleting products — as well as browsing, searching, and filtering capabilities.\n\nRequests included:\n\n- All Products: Retrieve the complete list of available products.\n    \n- Get a Product: Fetch details for a specific product by ID.\n    \n- Invalid Product: Test error handling and edge cases when an invalid product ID is provided.\n    \n- Search Product: Search for products using a query string.\n    \n- Products by Category: Filter and browse products by category.\n    \n- Add a Product: Create a new product entry.\n    \n- Update a Product: Modify the details of an existing product.\n    \n- Delete Product: Remove a product from the catalog.\n    \n\nUse this folder to validate both the core product workflows and edge case scenarios such as invalid or missing product references.",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "//check that response is JSON\npm.test(\"Response is JSON\",function(){\n    pm.response.to.be.json;\n});\n\n"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get Users",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\r\npm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Users is an array\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.users).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"Users are returned\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.users.length).to.be.greaterThan(0);\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url_project_1}}/users",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "users"
+              ]
+            },
+            "description": "## Get Users\n\nRetrieves a complete list of all users in the system.\n\n---\n\n### Method & URL\n\n**GET** `{{base_Url_project_1}}/users`\n\n---\n\n### Parameters\n\nThis endpoint does not require any path or query parameters.\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nNone.\n\n---\n\n### Response\n\nA successful request returns a **200 OK** status with a JSON object containing a `users` array. Each element in the array represents a user in the system.\n\n**Example response structure:**\n\n``` json\n{\n  \"users\": [\n    { \"id\": 1, \"firstName\": \"Emily\", \"lastName\": \"...\", ... },\n    { ... }\n  ]\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 200** — Verifies that the response status is `200 OK`.\n\n- **Users is an array** — Confirms that `data.users` is an array.\n\n- **Users are returned** — Confirms that the `users` array contains at least one item."
+          },
+          "response": []
+        },
+        {
+          "name": "Get a User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test (\"Status code is 200\", function () {\r\n    p\r\n\r\npm.test(\"User's first name is Emily\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.firstName).to.eql(\"Emily\");\r\n    pm.environment.set(\"name\", data.firstName);\r\n  \r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url_project_1}}/users/1",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "users",
+                "1"
+              ]
+            },
+            "description": "## Get a User\n\nRetrieves the details of a single user by their ID.\n\n---\n\n### Method & URL\n\n**GET** `{{base_Url_project_1}}/users/1`\n\n---\n\n### Parameters\n\n| Parameter | Type | Location | Description |\n|-----------|------|----------|-------------|\n| `1` | integer | Path | The ID of the user to retrieve. |\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nNone.\n\n---\n\n### Response\n\nA successful request returns a **200 OK** status with a JSON object containing the details of the requested user.\n\n**Example response structure:**\n\n``` json\n{\n  \"id\": 1,\n  \"firstName\": \"Emily\",\n  \"lastName\": \"...\",\n  \"email\": \"...\",\n  ...\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 200** — Verifies that the response status is `200 OK`.\n\n- **User's first name is Emily** — Confirms that the returned user's `firstName` equals `\"Emily\"`.\n\n> The user's `firstName` is automatically saved to the `name` environment variable for use in subsequent requests."
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {\r\n    pm.response.to.have.status(404)\r\n});\r\n\r\npm.test(\"Error message exist\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.message).to.exist;\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url_project_1}}/users/999",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "users",
+                "999"
+              ]
+            },
+            "description": "## Invalid User\n\nAttempts to retrieve a user using a non-existent ID, verifying that the API returns the correct error response.\n\n---\n\n### Method & URL\n\n**GET** `{{base_Url_project_1}}/users/999`\n\n---\n\n### Parameters\n\n| Parameter | Type | Location | Description |\n|-----------|------|----------|-------------|\n| `999` | integer | Path | A user ID that does not exist in the system. |\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nNone.\n\n---\n\n### Response\n\nA request with an invalid user ID returns a **404 Not Found** status with a JSON object containing an error message.\n\n**Example response structure:**\n\n``` json\n{\n  \"message\": \"User with id '999' not found\"\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 404** — Verifies that the response status is `404 Not Found`.\n\n- **Error message exists** — Confirms that the response body contains a `message` field."
+          },
+          "response": []
+        },
+        {
+          "name": "Search User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n\r\npm.test(\"Users is an array\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.users).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"Search results are returned\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.users.length).to.be.greaterThan(0);\r\n});\r\n\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url_project_1}}/users/search?q=John",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "users",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "John"
+                }
+              ]
+            },
+            "description": "## Search User\n\nSearches for users matching a given keyword query.\n\n---\n\n### Method & URL\n\n**GET** `{{base_Url_project_1}}/users/search?q=John`\n\n---\n\n### Parameters\n\n| Parameter | Type | Location | Description |\n|-----------|------|----------|-------------|\n| `q` | string | Query | The search keyword to filter users by. |\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nNone.\n\n---\n\n### Response\n\nA successful request returns a **200 OK** status with a JSON object containing a `users` array of items matching the search keyword.\n\n**Example response structure:**\n\n``` json\n{\n  \"users\": [\n    { \"id\": 1, \"firstName\": \"John\", \"lastName\": \"...\", ... },\n    ...\n  ]\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 200** — Verifies that the response status is `200 OK`.\n\n- **Users is an array** — Confirms that `data.users` is an array.\n\n- **Search results are returned** — Confirms that the `users` array contains at least one item."
+          },
+          "response": []
+        }
+      ],
+      "description": "This folder contains all requests related to user management in the E-Commerce API. It covers browsing and retrieving user data, searching for specific users, and handling edge cases for invalid or non-existent user references.\n\nRequests included:\n\n- **Get Users**: Retrieve the complete list of all registered users.\n\n- **Get a User**: Fetch the details of a specific user by their ID.\n\n- **Invalid User**: Test error handling when a non-existent or invalid user ID is provided.\n\n- **Search User**: Search for users using a query string.\n\nUse this folder to validate both the core user retrieval workflows and edge case scenarios such as invalid or missing user references.",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "\r\npm.test(\"Response is JSON\", function () {\r\n    pm.response.to.be.json;\r\n});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Carts",
+      "item": [
+        {
+          "name": "Get All Carts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Response is JSON\", function () {\r\n    pm.response.to.be.json;\r\n});\r\n\r\npm.test(\"Carts is an array\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.carts).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"Carts are returned\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.carts.length).to.be.greaterThan(0);\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url_project_1}}/carts",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "carts"
+              ]
+            },
+            "description": "## Get All Carts\n\nRetrieves a complete list of all shopping carts in the system.\n\n---\n\n### Method & URL\n\n**GET** `{{base_Url_project_1}}/carts`\n\n---\n\n### Parameters\n\nThis endpoint does not require any path or query parameters.\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nNone.\n\n---\n\n### Response\n\nA successful request returns a **200 OK** status with a JSON object containing a `carts` array. Each element represents a shopping cart in the system.\n\n**Example response structure:**\n\n``` json\n{\n  \"carts\": [\n    { \"id\": 1, \"userId\": 1, \"products\": [ ... ], \"total\": ... },\n    { ... }\n  ]\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 200** — Verifies that the response status is `200 OK`.\n\n- **Response is JSON** — Confirms that the response body is valid JSON.\n\n- **Carts is an array** — Confirms that `data.carts` is an array.\n\n- **Carts are returned** — Confirms that the `carts` array contains at least one item."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Cart (Validate cart total)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n\r\npm.test(\"Cart ID is 2\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.id).to.eql(2);\r\n});\r\n\r\npm.test(\"Products is an array\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.products).to.be.an(\"array\");\r\n});\r\n\r\n//validating if the total of cart is calculated correctly\r\npm.test(\"Cart total is calculated correctly\", function () {\r\n    const data = pm.response.json();\r\n\r\n    let calculatedTotal = 0;\r\n\r\n    data.products.forEach(function (product) {\r\n        calculatedTotal += product.price * product.quantity;\r\n    });\r\n\r\n    calculatedTotal = Number(calculatedTotal.toFixed(2));\r\n\r\n    pm.expect(calculatedTotal).to.eql(data.total);\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url_project_1}}/carts/2",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "carts",
+                "2"
+              ]
+            },
+            "description": "## Get Cart (Validate Cart Total)\n\nRetrieves a single cart by its ID and validates that the cart's total is calculated correctly based on the products and their quantities.\n\n---\n\n### Method & URL\n\n**GET** `{{base_Url_project_1}}/carts/2`\n\n---\n\n### Parameters\n\n| Parameter | Type | Location | Description |\n|-----------|------|----------|-------------|\n| `2` | integer | Path | The ID of the cart to retrieve. |\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nNone.\n\n---\n\n### Response\n\nA successful request returns a **200 OK** status with a JSON object containing the cart details, including a `products` array and a `total` value.\n\n**Example response structure:**\n\n``` json\n{\n  \"id\": 2,\n  \"products\": [\n    { \"id\": 1, \"title\": \"...\", \"price\": 9.99, \"quantity\": 2, ... },\n    ...\n  ],\n  \"total\": 19.98,\n  ...\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 200** — Verifies that the response status is `200 OK`.\n\n- **Cart ID is 2** — Confirms that the returned cart's `id` equals `2`.\n\n- **Products is an array** — Confirms that `data.products` is an array.\n\n- **Cart total is calculated correctly** — Iterates over all products, multiplies each product's `price` by its `quantity`, sums the results, and verifies it matches the `total` field returned by the API."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Cart by user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Carts is an array\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.carts).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"All carts belong to user 6\", function () {\r\n    const data = pm.response.json();\r\n\r\n    data.carts.forEach(function (cart) {\r\n        pm.expect(cart.userId).to.eql(6);\r\n       \r\n    });\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url_project_1}}/carts/user/6",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "carts",
+                "user",
+                "6"
+              ]
+            },
+            "description": "## Get Cart by User\n\nRetrieves all shopping carts belonging to a specific user by their user ID.\n\n---\n\n### Method & URL\n\n**GET** `{{base_Url_project_1}}/carts/user/6`\n\n---\n\n### Parameters\n\n| Parameter | Type | Location | Description |\n|-----------|------|----------|-------------|\n| `6` | integer | Path | The ID of the user whose carts should be retrieved. |\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nNone.\n\n---\n\n### Response\n\nA successful request returns a **200 OK** status with a JSON object containing a `carts` array of all carts belonging to the specified user.\n\n**Example response structure:**\n\n``` json\n{\n  \"carts\": [\n    { \"id\": 1, \"userId\": 6, \"products\": [ ... ], \"total\": ... },\n    ...\n  ]\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 200** — Verifies that the response status is `200 OK`.\n\n- **Carts is an array** — Confirms that `data.carts` is an array.\n\n- **All carts belong to user 6** — Iterates over all returned carts and confirms that each cart's `userId` equals `6`."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Invalid Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {\r\n    pm.response.to.have.status(404);\r\n});\r\n\r\npm.test(\"Response body contains the correct message\", function () {\r\n    const data = pm.response.json();\r\npm.expect(data.message).to.exist;\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url_project_1}}/carts/999",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "carts",
+                "999"
+              ]
+            },
+            "description": "## Get Invalid Cart\n\nAttempts to retrieve a cart using a non-existent ID, verifying that the API returns the correct error response.\n\n---\n\n### Method & URL\n\n**GET** `{{base_Url_project_1}}/carts/999`\n\n---\n\n### Parameters\n\n| Parameter | Type | Location | Description |\n|-----------|------|----------|-------------|\n| `999` | integer | Path | A cart ID that does not exist in the system. |\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nNone.\n\n---\n\n### Response\n\nA request with an invalid cart ID returns a **404 Not Found** status with a JSON object containing an error message.\n\n**Example response structure:**\n\n``` json\n{\n  \"message\": \"Cart with id '999' not found\"\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 404** — Verifies that the response status is `404 Not Found`.\n\n- **Response body contains the correct message** — Confirms that the response body contains a `message` field."
+          },
+          "response": []
+        },
+        {
+          "name": "Add to Cart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"Product 1 was added to cart\", function () {\r\n    const data = pm.response.json();\r\n\r\n    const product = data.products.find(function (product) {\r\n        return product.id === 165;\r\n    });\r\n\r\n    pm.expect(product).to.exist;\r\n});\r\n\r\n\r\npm.test(\"Product quantity is 3\", function () {\r\n    const data = pm.response.json();\r\n\r\n    const product = data.products.find(function (product) {\r\n        return product.quantity === 3;\r\n    });\r\n\r\n    pm.expect(product.quantity).to.eql(3);\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"userId\": 5,\r\n    \"products\": [\r\n        {\r\n            \"id\": 165,\r\n            \"quantity\": 3\r\n        }\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url_project_1}}/carts/add",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "carts",
+                "add"
+              ]
+            },
+            "description": "## Add to Cart\n\nSimulates adding a new cart with products for a specific user. Note: this is a simulation only — no cart is actually persisted on the server.\n\n---\n\n### Method & URL\n\n**POST** `{{base_Url_project_1}}/carts/add`\n\n---\n\n### Parameters\n\nNone.\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nA JSON object containing the user ID and the list of products to add to the cart.\n\n``` json\n{\n  \"userId\": 5,\n  \"products\": [\n    {\n      \"id\": 165,\n      \"quantity\": 3\n    }\n  ]\n}\n```\n\n---\n\n### Response\n\nA successful request returns a **201 Created** status with a JSON object representing the newly created cart, including the assigned `id` and the list of products.\n\n**Example response structure:**\n\n``` json\n{\n  \"id\": 21,\n  \"userId\": 5,\n  \"products\": [\n    { \"id\": 165, \"quantity\": 3, ... }\n  ],\n  \"total\": ...\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 201** — Verifies that the response status is `201 Created`.\n\n- **Product 1 was added to cart** — Confirms that the product with `id` `165` exists in the returned cart's `products` array.\n\n- **Product quantity is 3** — Confirms that the product's `quantity` equals `3`."
+          },
+          "response": []
+        },
+        {
+          "name": "Update a Cart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Cart ID is 1\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.id).to.eql(1);\r\n});\r\n\r\n\r\npm.test(\"Product quantity was updated to 5\", function () {\r\n    const data = pm.response.json();\r\n\r\n    const product = data.products.find(function (product) {\r\n        return product.quantity === 5;\r\n    });\r\n\r\n    pm.expect(product.quantity).to.eql(5);\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"merge\": true,\r\n    \"products\": [\r\n        {\r\n            \"id\": 162,\r\n            \"quantity\": 5\r\n        }\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url_project_1}}/cart/1",
+              "host": [
+                "{{base_Url_project_1}}"
+              ],
+              "path": [
+                "cart",
+                "1"
+              ]
+            },
+            "description": "## Update a Cart\n\nUpdates an existing cart by merging new products into it or replacing its contents.\n\n---\n\n### Method & URL\n\n**PUT** `{{base_Url_project_1}}/cart/1`\n\n---\n\n### Parameters\n\n| Parameter | Type | Location | Description |\n|-----------|------|----------|-------------|\n| `1` | integer | Path | The ID of the cart to update. |\n\n---\n\n### Authentication\n\nNo authentication is required for this request.\n\n---\n\n### Request Body\n\nA JSON object containing the `merge` flag and the list of products to add or update in the cart.\n\n``` json\n{\n  \"merge\": true,\n  \"products\": [\n    {\n      \"id\": 162,\n      \"quantity\": 5\n    }\n  ]\n}\n```\n\n> Setting `merge` to `true` adds the new products to the existing cart contents rather than replacing them.\n\n---\n\n### Response\n\nA successful request returns a **200 OK** status with a JSON object representing the updated cart.\n\n**Example response structure:**\n\n``` json\n{\n  \"id\": 1,\n  \"products\": [\n    { \"id\": 162, \"quantity\": 5, ... },\n    ...\n  ],\n  \"total\": ...\n}\n```\n\n---\n\n### Automated Tests\n\nThe following tests run automatically after the response is received:\n\n- **Status code is 200** — Verifies that the response status is `200 OK`.\n\n- **Cart ID is 1** — Confirms that the returned cart's `id` equals `1`.\n\n- **Product quantity was updated to 5** — Confirms that the product with `quantity` `5` exists in the returned cart's `products` array."
+          },
+          "response": []
+        }
+      ],
+      "description": "This folder contains all requests related to cart management in the E-Commerce API. It covers retrieving cart data, managing cart contents, and handling edge cases for invalid or non-existent product references.\n\nRequests included:\n\n- **Get All Carts**: Retrieve the complete list of all shopping carts.\n    \n- **Get Cart (Validate cart total)**: Fetch a specific cart by ID and validate its total price.\n    \n- **Get Cart by user**: Retrieve all carts associated with a specific user.\n    \n- **Get Invalid Product**: Test error handling when an invalid product reference is included in a cart.\n    \n- **Add to Cart**: Add one or more products to a new or existing cart.\n    \n- **Update a Cart**: Modify the contents or quantities of an existing cart.\n    \n\nUse this folder to validate both the core cart workflows and edge case scenarios such as invalid or missing product references.",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response is JSON\", function () {\r\n    pm.response.to.be.json;\r\n});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_Url_project_1",
+      "value": ""
+    }
+  ]
+}
