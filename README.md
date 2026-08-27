@@ -78,3 +78,5 @@ An access token is automatically extracted from the login response and stored as
 const data = pm.response.json();
 
 pm.environment.set("accessToken", data.accessToken);
+
+
