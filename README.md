@@ -1,2 +1,6 @@
 # Ecommerce-API-Testing-Postman
-E-commerce REST API testing project using Postman, covering functional, positive/negative, authentication, CRUD, and business logic testing.
+📌 Project Overview
+
+This project demonstrates API testing of an e-commerce REST API using Postman. The test suite covers product, user, authentication, and cart endpoints through positive and negative test scenarios.
+
+The project focuses on validating API responses, HTTP status codes, response data, authentication, CRUD operations, and business logic.
